@@ -3,6 +3,7 @@ plugins {
   id("org.jetbrains.kotlin.android")
   kotlin("kapt")
   id("dagger.hilt.android.plugin")
+  id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 android {
@@ -11,7 +12,7 @@ android {
 
   defaultConfig {
     applicationId = "com.ichin23.weather"
-    minSdk = 24
+    minSdk = 26
     targetSdk = 33
     versionCode = 1
     versionName = "1.0"
@@ -67,8 +68,20 @@ dependencies {
   implementation("androidx.navigation:navigation-compose:2.6.0")
 
   implementation("com.google.dagger:hilt-android:2.44")
-  kapt("com.google.dagger:hilt-android-compiler:2.44")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation(platform("androidx.compose:compose-bom:2023.03.00"))
+    androidTestImplementation(platform("androidx.compose:compose-bom:2023.03.00"))
+    kapt("com.google.dagger:hilt-android-compiler:2.44")
   implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
+
+  var ktor_version = "1.6.3"
+  implementation ("io.ktor:ktor-client-core:$ktor_version")
+  implementation ("io.ktor:ktor-client-android:$ktor_version")
+  implementation ("io.ktor:ktor-client-serialization:$ktor_version")
+  implementation ("io.ktor:ktor-client-logging:$ktor_version")
+  implementation ("ch.qos.logback:logback-classic:1.2.3")
+
+  implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.0")
 
 
   testImplementation("junit:junit:4.13.2")

@@ -4,8 +4,6 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
-
-
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +21,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,27 +32,38 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.ichin23.weather.R
+import com.ichin23.weather.ui.screens.WeatherViewModel
 import com.ichin23.weather.util.Routes
 import com.ichin23.weather.util.UiEvent
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LocalizationPermissionScreen( onNavigate: (UiEvent.Navigate)->Unit) {
+fun LocalizationPermissionScreen( onNavigate: (UiEvent.Navigate)->Unit,  viewModel:LocalizationViewModel= hiltViewModel()) {
 
   val permissionState = rememberLauncherForActivityResult(
-    contract = ActivityResultContracts.RequestPermission()
+    contract = ActivityResultContracts.RequestMultiplePermissions()
   ){isGranted->
-    if(isGranted){
-      Log.d("ExampleScreen","PERMISSION GRANTED")
-      onNavigate(UiEvent.Navigate(Routes.HOME))
-    }else{
-      Log.d("ExampleScreen","PERMISSION DENIED")
+    val set = isGranted.values.toSet()
+    if(set.size==1 && set.first()){
+      onNavigate(UiEvent.Navigate(Routes.SEARCH_CITY))
     }
   }
 
-
+  viewModel.getToken()
   val context = LocalContext.current
+
+  if(ContextCompat.checkSelfPermission(
+      context,
+      Manifest.permission.ACCESS_COARSE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED &&  ContextCompat.checkSelfPermission(
+      context,
+      Manifest.permission.ACCESS_FINE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED ){
+    onNavigate(UiEvent.Navigate(Routes.SEARCH_CITY))
+  }
+
+
 
   Scaffold(
     modifier= Modifier
@@ -91,30 +101,8 @@ fun LocalizationPermissionScreen( onNavigate: (UiEvent.Navigate)->Unit) {
             containerColor = MaterialTheme.colorScheme.secondary
           ),
           onClick = {
-            when (PackageManager.PERMISSION_GRANTED) {
-              ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-              ) -> {
-              }
+            permissionState.launch(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION))
 
-              else -> {
-                permissionState.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
-              }
-            }
-
-            when (PackageManager.PERMISSION_GRANTED) {
-              ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_FINE_LOCATION
-              ) -> {
-
-              }
-
-              else -> {
-                permissionState.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-              }
-            }
           }
         ) {
           Text(
@@ -128,4 +116,5 @@ fun LocalizationPermissionScreen( onNavigate: (UiEvent.Navigate)->Unit) {
     }
   }
 }
+
 
